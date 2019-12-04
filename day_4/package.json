@@ -1,7 +1,7 @@
 {
-  "name": "day_3",
+  "name": "day_4",
   "version": "1.0.0",
-  "description": "AOC Day 3 solution",
+  "description": "AOC Day 4 solution",
   "main": "index.js",
   "author": "mvukic",
   "license": "MIT",

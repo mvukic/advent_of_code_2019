@@ -8,6 +8,7 @@ interface Move {
 interface Point {
   x: number;
   y: number;
+  distance?: number;
 }
 
 function parseMovements(movements: string[]): Move[] {
@@ -24,18 +25,18 @@ function parseInput(input: string): [Move[], Move[]] {
 }
 
 function getPointsBetweenCoordinates(startPoint: Point, endPoint: Point): Point[] {
-  const points: Point[] = [];
+  const points: Point[] = [startPoint];
   if (startPoint.x === endPoint.x) {
     // x1 === x2
     if (startPoint.y > endPoint.y) {
       // y1 > y2
       for (let y = startPoint.y; y >= endPoint.y; y--) {
-        points.push({x: startPoint.x, y });
+        points.push({x: startPoint.x, y, distance: points[points.length - 1].distance + 1 });
       }
     } else {
       // y1 < y2
       for (let y = startPoint.y; y <= endPoint.y; y++) {
-        points.push({x: startPoint.x, y });
+        points.push({x: startPoint.x, y, distance: points[points.length - 1].distance + 1 });
       }
     }
   } else {
@@ -43,12 +44,12 @@ function getPointsBetweenCoordinates(startPoint: Point, endPoint: Point): Point[
     if (startPoint.x > endPoint.x) {
       // x1 > x2
       for (let x = startPoint.x; x >= endPoint.x; x--) {
-        points.push({ x, y: startPoint.y });
+        points.push({ x, y: startPoint.y, distance: points[points.length - 1].distance + 1 });
       }
     } else {
       // x1 < x2
       for (let x = startPoint.x; x <= endPoint.x; x++) {
-        points.push({ x, y: startPoint.y });
+        points.push({ x, y: startPoint.y, distance: points[points.length - 1].distance + 1 });
       }
     }
   }
@@ -56,7 +57,8 @@ function getPointsBetweenCoordinates(startPoint: Point, endPoint: Point): Point[
 }
 
 function getCoordinates(wire: Move[]): Point[] {
-  const points: Point[] = [{x: 0, y: 0}];
+  const points: Point[] = [{x: 0, y: 0, distance: 0}];
+  let travel = 0;
   wire.forEach((move) => {
     const lastPoint = {...points[points.length - 1]};
     const currentPoint = { ...lastPoint };
@@ -69,19 +71,52 @@ function getCoordinates(wire: Move[]): Point[] {
     } else if (move.orientation === 'D') {
       currentPoint.y = currentPoint.y - move.steps;
     }
-    // console.log(`(${lastPoint.x}, ${lastPoint.y}) -> (${currentPoint.x},${currentPoint.y})`);
-    const [_, ...rest] = getPointsBetweenCoordinates(lastPoint, currentPoint);
-    // console.log(rest);
+    travel += move.steps;
+    // Increase traveled distance for current point
+    currentPoint.distance = currentPoint.distance + move.steps;
+    // console.log(`(${lastPoint.x}, ${lastPoint.y}, ${lastPoint.distance}) -> (${currentPoint.x} ,${currentPoint.y}, ${currentPoint.distance})`);
+    // Remove already included first point
+    const [_, ...rest] = getPointsBetweenCoordinates({...lastPoint, distance: lastPoint.distance - 1}, currentPoint);
+    // console.log(`Travel so far: ${travel}`);
     points.push(...rest);
   });
-  const [zero, ...withoutCenter] = points;
-  return withoutCenter;
+  return points;
+}
+
+function getUniquePointsWithSmallestTravel(points: Point[]): Point[] {
+  const unique: Point[] = [];
+  points.forEach((point) => {
+    // console.log(`Looking at ${point.x},${point.y}`);
+    const index = unique.findIndex((it: Point) => it.x === point.x && it.y === point.y);
+    // If we already found this location
+    if (index > -1) {
+      // console.log(`Already have ${point.x},${point.y}`);
+      // Check distance and replace old one if neded
+      if (point.distance < unique[index].distance) {
+        // console.log(`Distance is smaller ${point.distance}`);
+        // Update old distance with smaller one
+        unique[index].distance = point.distance;
+      }
+    } else {
+      // Found nonexisting point
+      unique.push(point);
+    }
+  });
+  return unique;
 }
 
 function getIntersections(wire1: Point[], wire2: Point[]): Point[] {
-  return wire1.filter((point) => {
-    return wire2.find((it) => it.x === point.x && it.y === point.y);
-  });
+  // Get intersections
+  return wire1
+    .map((point) => {
+      const index = wire2.findIndex((it) => it.x === point.x && it.y === point.y);
+      if (index > -1) {
+        // Return point but add travel distances for both wires
+        return { x: point.x, y: point.y, distance: point.distance + wire2[index].distance };
+      }
+    })
+    .filter((it) => it !== undefined);
+
 }
 
 function getManhattanDistance(point: Point): number {
@@ -101,17 +136,34 @@ function getClosestPoint(points: Point[]): [Point, number] {
   return [closest, smallest];
 }
 
+function getUnique(points: Point[]): Point[] {
+  const unique: Point[] = [];
+  points.forEach((point) => {
+    if (unique.findIndex((it) => it.x === point.x && it.y === point.y && it.distance === point.distance) === -1) {
+      unique.push(point);
+    }
+  });
+  return unique;
+}
+
 async function start() {
+  console.log('Wait 30 minutes');
   const input: string = await fs.promises.readFile('./input/part1.txt', { encoding: 'utf8' });
   const [wire1, wire2] = parseInput(input);
 
-  const wire1Coordinates = getCoordinates(wire1);
-  const wire2Coordinates = getCoordinates(wire2);
+  const wire1Coordinates = getUnique(getCoordinates(wire1));
+  const wire2Coordinates = getUnique(getCoordinates(wire2));
 
-  const intersections = getIntersections(wire1Coordinates, wire2Coordinates);
-  console.log(intersections);
-  const [point, distance] = getClosestPoint(intersections);
-  console.log(`Closest point is (${point.x},${point.y}) with ${distance}\n`);
+  const wire1ClosestPoints = getUniquePointsWithSmallestTravel(wire1Coordinates);
+  const wire2ClosestPoints = getUniquePointsWithSmallestTravel(wire2Coordinates);
+
+  const [_, ...intersections] = getIntersections(wire1ClosestPoints, wire2ClosestPoints);
+  let best = intersections[0];
+  intersections.forEach((point) => {
+    if (point.distance < best.distance) { best = point; }
+  });
+  console.log('Fastest intersection is:');
+  console.log(best);
 }
 
 start();

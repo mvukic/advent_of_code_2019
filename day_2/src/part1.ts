@@ -1,4 +1,7 @@
 import fs from 'fs';
+import { operations } from './operations';
+import { Memory, getMemoryValue } from './memory';
+import { Opcode } from './opcode';
 
 function parseInput(input: string): number[] {
   return input
@@ -7,34 +10,24 @@ function parseInput(input: string): number[] {
     .map((it) => parseInt(it, 10));
 }
 
-function processIntCode(intcode: number[]): number[] {
-  const copy = [...intcode];
+function processIntCode(program: number[]): Memory {
+  const memory: Memory = {
+    index: 0,
+    program: [...program]
+  };
 
-  let index = 0;
-  let isProcessing = true;
-  while (isProcessing) {
-    const value = copy[index];
-    if (value === 1) {
-      // handle addition
-      const firstValue = copy[copy[index + 1]];
-      const secondValue = copy[copy[index + 2]];
-      const result = firstValue + secondValue;
-      copy[copy[index + 3]] = result;
-      index += 4;
-    } else if (value === 2) {
-      // handle multiplication
-      const firstValue = copy[copy[index + 1]];
-      const secondValue = copy[copy[index + 2]];
-      const result = firstValue * secondValue;
-      copy[copy[index + 3]] = result;
-      index += 4;
-    } else if (value === 99) {
-      // handle halt
+  while (true) {
+    const value = getMemoryValue(memory);
+    if (value === Opcode.ADD) {
+      operations.add(memory);
+    } else if (value === Opcode.MULTIPLY) {
+      operations.multiply(memory);
+    } else if (value === Opcode.HALT) {
       console.log('HALT!');
-      isProcessing = false;
+      break;
     }
   }
-  return copy;
+  return memory;
 }
 
 async function start() {
@@ -43,8 +36,8 @@ async function start() {
   const [noun, verb] = [12, 2];
   intcode[1] = noun;
   intcode[2] = verb;
-  const resultIntocde = processIntCode(intcode);
-  console.log(`Position 0 is ${resultIntocde[0]}`);
+  const memory = processIntCode(intcode);
+  console.log(`Position 0 is ${getMemoryValue(memory, 0)}`);
 }
 
 start();

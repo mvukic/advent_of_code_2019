@@ -36,8 +36,10 @@ async function processIntCode(program: number[]): Promise<Memory> {
       } else if (opcode.type === OpcodeType.LESS_THAN) {
         operations.lessThan(memory, opcode);
       } else if (opcode.type === OpcodeType.HALT) {
-        console.log('HALT!');
+        // console.log('HALT!');
         break;
+      } else {
+        reject('unknown opcode');
       }
     }
     resolve(memory);
@@ -47,7 +49,12 @@ async function processIntCode(program: number[]): Promise<Memory> {
 async function start() {
   const input = await readFile('./input/part1.txt');
   const intcode = parseInput(input);
-  const memory = await processIntCode(intcode);
+  try {
+    const memory = await processIntCode(intcode);
+    // console.log(memory);
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 start();

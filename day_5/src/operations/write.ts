@@ -1,5 +1,5 @@
 import { Memory, increaseMemoryIndex, getMemoryValue } from '../memory';
-import { Opcode } from '../opcode';
+import { Opcode, OpcodeMode } from '../opcode';
 
 export function write(memory: Memory, opcode: Opcode) {
 
@@ -7,7 +7,10 @@ export function write(memory: Memory, opcode: Opcode) {
   const index = memory.index;
 
   const firstPointer = program[index + 1];
-  console.log(getMemoryValue(memory, firstPointer));
+
+  const value = opcode.modes.first === OpcodeMode.POSITIONAL ? program[firstPointer] : firstPointer;
+
+  console.log(value);
 
   increaseMemoryIndex(memory, 2);
 }

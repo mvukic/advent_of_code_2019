@@ -1,7 +1,8 @@
-import { Memory, setMemoryIndex, increaseMemoryIndex } from '../memory';
+import { increaseMemoryIndex, Memory } from '../memory';
 import { Opcode, OpcodeMode } from '../opcode';
 
 export function equals(memory: Memory, opcode: Opcode) {
+
   const program = memory.program;
   const index = memory.index;
 
@@ -11,12 +12,11 @@ export function equals(memory: Memory, opcode: Opcode) {
 
   const firstValue = opcode.modes.first === OpcodeMode.POSITIONAL ? program[firstPointer] : firstPointer;
   const secondValue = opcode.modes.second === OpcodeMode.POSITIONAL ? program[secondPointer] : secondPointer;
-  const thirdValue = opcode.modes.third === OpcodeMode.POSITIONAL ? program[resultPointer] : resultPointer;
 
   if (firstValue === secondValue) {
-    memory.program[thirdValue] = 1;
+    memory.program[resultPointer] = 1;
   } else {
-    memory.program[thirdValue] = 0;
+    memory.program[resultPointer] = 0;
   }
 
   increaseMemoryIndex(memory, 4);

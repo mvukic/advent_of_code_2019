@@ -11,12 +11,11 @@ export function lessThan(memory: Memory, opcode: Opcode) {
 
   const firstValue = opcode.modes.first === OpcodeMode.POSITIONAL ? program[firstPointer] : firstPointer;
   const secondValue = opcode.modes.second === OpcodeMode.POSITIONAL ? program[secondPointer] : secondPointer;
-  const resultValue = opcode.modes.third === OpcodeMode.POSITIONAL ? program[resultPointer] : resultPointer;
 
   if (firstValue < secondValue) {
-    memory.program[resultValue] = 1;
+    memory.program[resultPointer] = 1;
   } else {
-    memory.program[resultValue] = 0;
+    memory.program[resultPointer] = 0;
   }
 
   increaseMemoryIndex(memory, 4);

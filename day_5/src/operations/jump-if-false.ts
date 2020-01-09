@@ -1,20 +1,19 @@
-import { Memory, setMemoryIndex, increaseMemoryIndex } from '../memory';
+import { Memory } from '../memory';
 import { Opcode, OpcodeMode } from '../opcode';
+import { CPU } from '../cpu';
 
-export function jumpIfFalse(memory: Memory, opcode: Opcode) {
-  const program = memory.program;
-  const index = memory.index;
+export function jumpIfFalse(memory: Memory, cpu: CPU, opcode: Opcode) {
+  const firstPointer = memory.read(cpu.pc + 1);
+  const secondPointer = memory.read(cpu.pc + 2);
 
-  const firstPointer = program[index + 1];
-  const secondPointer = program[index + 2];
-
-  const firstValue = opcode.modes.first === OpcodeMode.POSITIONAL ? program[firstPointer] : firstPointer;
-  const secondValue = opcode.modes.second === OpcodeMode.POSITIONAL ? program[secondPointer] : secondPointer;
+  const firstValue = opcode.modes.first === OpcodeMode.POSITIONAL ? memory.read(firstPointer) : firstPointer;
+  const secondValue = opcode.modes.second === OpcodeMode.POSITIONAL ? memory.read(secondPointer) : secondPointer;
 
   if (firstValue === 0) {
-    setMemoryIndex(memory, secondValue);
+    cpu.setPC(secondValue);
   } else {
-    increaseMemoryIndex(memory, 3);
+    cpu.increasePC(3);
   }
 
+  memory.updateOpcodeCounter(opcode.type);
 }

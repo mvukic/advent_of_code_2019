@@ -10,12 +10,7 @@
       "object-literal-sort-keys": false,
       "interface-name": false,
       "trailing-comma": false,
-      "ordered-imports": false,
-      "variable-name": {
-        "options": [
-          "allow-leading-underscore"
-        ]
-      }
+      "ordered-imports": false
     },
     "rulesDirectory": []
 }

@@ -1,16 +1,16 @@
-import { Memory, increaseMemoryIndex, getMemoryValue } from '../memory';
+import { Memory } from '../memory';
 import { Opcode, OpcodeMode } from '../opcode';
+import { CPU } from '../cpu';
 
-export function write(memory: Memory, opcode: Opcode) {
+export function write(memory: Memory, cpu: CPU, opcode: Opcode) {
 
-  const program = memory.program;
-  const index = memory.index;
+  const firstPointer = memory.read(cpu.pc + 1);
 
-  const firstPointer = program[index + 1];
+  const firstValue = opcode.modes.first === OpcodeMode.POSITIONAL ? memory.read(firstPointer) : firstPointer;
 
-  const value = opcode.modes.first === OpcodeMode.POSITIONAL ? program[firstPointer] : firstPointer;
+  console.log(firstValue);
 
-  console.log(value);
+  cpu.increasePC(2);
 
-  increaseMemoryIndex(memory, 2);
+  memory.updateOpcodeCounter(opcode.type);
 }

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { IntCodeVM } from './vm/intcode.vm';
+import { IntCodeVMSnapshot } from './vm/vm.shapshot';
 
 function readFile(path: string): Promise<string> {
   return fs.promises.readFile(path, { encoding: 'utf8' });
@@ -12,17 +13,17 @@ function parseInput(input: string): number[] {
     .map((it) => parseInt(it, 10));
 }
 
-async function processIntCode(program: number[]) {
+async function processIntCode(program: number[]): Promise<IntCodeVMSnapshot> {
   const vm = new IntCodeVM(program);
-  await vm.run();
+  return await vm.run();
 }
 
 async function start() {
   const input = await readFile('./input/part1.txt');
   const intcode = parseInput(input);
   try {
-    await processIntCode(intcode);
-    // console.log(memory);
+    const result = await processIntCode(intcode);
+    // console.log(result);
   } catch (error) {
     console.log(error);
   }

@@ -2,6 +2,7 @@ import { CPU } from '../cpu';
 import { Memory } from '../memory';
 import { Opcode, OpcodeType, parseOpcode } from '../opcode';
 import { operations } from '../operations';
+import { IntCodeVMSnapshot } from './vm.shapshot';
 
 export interface IntCodeVMConfig {
   debug: boolean;
@@ -28,42 +29,31 @@ export class IntCodeVM {
     this._cpu.debug = _config.debug;
   }
 
-  public run(): Promise<void> {
-    return new Promise( async (resolve, reject) => {
-      while (true) {
-        const opcode = this.decode(this._memory.read(this._cpu.pc));
-        switch (opcode.type) {
-          case OpcodeType.ADD:
-            operations.add(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.EQUALS:
-            operations.equals(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.JUMP_IF_FALSE:
-            operations.jumpIfFalse(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.JUMP_IF_TRUE:
-            operations.jumpIfTrue(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.LESS_THAN:
-            operations.lessThan(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.MULTIPLY:
-            operations.multiply(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.READ:
-            await operations.read(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.WRITE:
-            operations.write(this._memory, this._cpu, opcode);
-            break;
-          case OpcodeType.HALT:
-            resolve();
-          default:
-            reject(opcode);
-        }
+  public async run(): Promise<IntCodeVMSnapshot> {
+    while (true) {
+      const opcode = this.decode(this._memory.read(this._cpu.pc));
+      if (opcode.type === OpcodeType.ADD) {
+        operations.add(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.EQUALS) {
+        operations.equals(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.JUMP_IF_FALSE) {
+        operations.jumpIfFalse(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.JUMP_IF_TRUE) {
+        operations.jumpIfTrue(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.LESS_THAN) {
+        operations.lessThan(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.MULTIPLY) {
+        operations.multiply(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.READ) {
+        await operations.read(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.WRITE) {
+        operations.write(this._memory, this._cpu, opcode);
+      } else if (opcode.type === OpcodeType.HALT) {
+        return Promise.resolve({cpu: this._cpu, memory: this._memory});
+      } else {
+        return Promise.reject(opcode);
       }
-    });
+    }
   }
 
   private decode(raw: number): Opcode {

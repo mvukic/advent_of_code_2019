@@ -8,9 +8,17 @@ export function write(memory: Memory, cpu: CPU, opcode: Opcode) {
 
   const firstValue = opcode.modes.first === OpcodeMode.POSITIONAL ? memory.read(firstPointer) : firstPointer;
 
-  console.log(firstValue);
+  if (cpu.auto) {
+    memory.outputValues.push(firstValue);
+  } else {
+    console.log(firstValue);
+  }
 
   cpu.increasePC(2);
 
   memory.updateOpcodeCounter(opcode.type);
+}
+
+async function writeAutomated(memory: Memory, cpu: CPU, opcode: Opcode) {
+
 }

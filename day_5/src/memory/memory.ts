@@ -1,4 +1,5 @@
 import { OpcodeType } from '../opcode';
+import { IntCodeVMConfig } from '../vm/intcode.vm';
 
 export class Memory {
 
@@ -7,9 +8,12 @@ export class Memory {
 
   /* opcode counter */
   private _opcodeCounter: Map<OpcodeType, number>;
+  get opcodeCounter() {
+    return this._opcodeCounter;
+  }
 
-  /* used for saving predefined input user values */
-  private _inputValues: number[];
+  /* used for reading values in automated mode */
+  private _inputValues: number[] = [];
   get inputValues(): number[] {
     return this._inputValues;
   }
@@ -17,9 +21,19 @@ export class Memory {
     this._inputValues = values;
   }
 
-  constructor(program: number[]) {
+  /* used for saving values in automated mode */
+  private _outputValues: number[] = [];
+  get outputValues(): number[] {
+    return this._outputValues;
+  }
+  set outputValues(values: number[]) {
+    this._outputValues = values;
+  }
+
+  constructor(program: number[], config?: IntCodeVMConfig) {
     this._values = [...program];
     this._opcodeCounter = new Map();
+    this._inputValues = config?.inputs ?? [];
   }
 
   public read(address: number): number {

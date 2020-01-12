@@ -6,11 +6,15 @@ import { IntCodeVMSnapshot } from './vm.shapshot';
 
 export interface IntCodeVMConfig {
   debug: boolean;
+  automated: boolean;
   inputs?: number[];
 }
 
 export const defaultIntCodeVMConfig: IntCodeVMConfig = {
-  debug: false
+  debug: false,
+  /* reads input from variable */
+  /* saves output into variable */
+  automated: false
 };
 
 export class IntCodeVM {
@@ -19,14 +23,11 @@ export class IntCodeVM {
   private _cpu: CPU;
   private _memory: Memory;
 
-  constructor(program: number[], config: IntCodeVMConfig = defaultIntCodeVMConfig) {
-    const _config = {...config, ...defaultIntCodeVMConfig};
+  constructor(program: number[], config: Partial<IntCodeVMConfig>) {
+    const _config = {...defaultIntCodeVMConfig, ...config};
 
-    this._memory = new Memory(program);
-    this._memory.inputValues = _config.inputs;
-
-    this._cpu = new CPU();
-    this._cpu.debug = _config.debug;
+    this._memory = new Memory(program, _config);
+    this._cpu = new CPU(_config);
   }
 
   public async run(): Promise<IntCodeVMSnapshot> {

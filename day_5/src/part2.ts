@@ -21,7 +21,7 @@ async function processIntCode(program: number[], config: Partial<IntCodeVMConfig
 async function start() {
   const input = await readFile('./input/part1.txt');
   const intcode = parseInput(input);
-  const phases = [5, 6, 7, 8, 9];
+  const phases = [0, 1, 2, 3, 4];
   const phasePermutations = permute(phases);
   const outputs: Array<{phases: number[], value: number}> = [];
   let m: {phases: number[], value: number} = {phases: [], value: 0};

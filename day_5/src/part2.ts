@@ -13,11 +13,6 @@ function parseInput(input: string): number[] {
     .map((it) => parseInt(it, 10));
 }
 
-async function processIntCode(program: number[], config: Partial<IntCodeVMConfig>): Promise<IntCodeVMSnapshot> {
-  const vm = new IntCodeVM(program, config);
-  return await vm.run();
-}
-
 async function start() {
   const input = await readFile('./input/part1.txt');
   const intcode = parseInput(input);
@@ -29,7 +24,8 @@ async function start() {
     for (const permutation of phasePermutations) {
       let output = 0;
       for (const phase of permutation) {
-        const result = await processIntCode(intcode, {automated: true, inputs: [phase, output]});
+        const vm = new IntCodeVM(intcode, {automated: true, inputs: [phase, output]});
+        const result = await vm.run();
         output = result.memory.outputValues[0];
       }
       if (output > m.value) {

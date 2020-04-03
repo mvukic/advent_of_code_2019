@@ -23,9 +23,9 @@ export class IntCodeVM {
   private _cpu: CPU;
   private _memory: Memory;
 
-  constructor(program: number[], config?: Partial<IntCodeVMConfig>) {
+  constructor(program: number[], config: Partial<IntCodeVMConfig>) {
     const _config = {...defaultIntCodeVMConfig, ...config};
-    console.log(_config);
+
     this._memory = new Memory(program, _config);
     this._cpu = new CPU(_config);
   }
